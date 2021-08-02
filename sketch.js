@@ -4,10 +4,13 @@ let board = [
   ['', '', '']
 ];
 let player = ['O', 'X'];
-let current_player = player[1];
+let first_player;
+let current_player;
 let empty = 9;
 
 function setup() {
+  first_player=player[floor(random(2))];
+  current_player = first_player;
   canvas = createCanvas(400, 400);
   canvas.position(20, 130);
   let T = createP('Torus Tic-Tac-Toe!');
@@ -38,9 +41,14 @@ function mousePressed() {
     let j = floor(mouseY / h);
     if (board[j][i] == '') {
       board[j][i] = player[0];
-      takeTurn()
-      empty--
-      computer()
+      let did_I_win=pattern_check('me');
+      if(did_I_win==2){
+        win(2)
+      } else{
+        takeTurn()
+        empty--
+        computer()
+      }
     }
   }
 }
@@ -48,7 +56,7 @@ function mousePressed() {
 function computer() {
   let place = pattern_check('X');
   if (place == 1) {
-    win()
+    win(1)
     return
   } else {
     place = pattern_check('O');
@@ -69,10 +77,16 @@ function computer() {
 }
 
 function pattern_check(xo) {
-  // TODO: when xo=='X', change the text color
+  // TODO: change the text color 
   for (let i = 0; i < 3; i++) {
     for (let j = 0; j < 3; j++) {
-      if (board[j][i] == xo) {
+      let check;
+      if(xo=='X'){
+        check='X';
+      } else{
+        check='O';
+      }
+      if (board[j][i] == check) {
         // check horizontal
         let m = (i + 1) % 3;
         let n = (i - 1) % 3;
@@ -82,12 +96,18 @@ function pattern_check(xo) {
         if (n < 0) {
           n = n + 3;
         }
-        if (board[j][m] == xo || board[j][n] == xo) {
-          for (let k = 0; k < 3; k++) {
-            if (board[j][k] == '') {
-              board[j][k] = player[1];
-              return 1
+        if (xo=='O' || xo=='X'){
+          if (board[j][m] == check || board[j][n] == check) {
+            for (let k = 0; k < 3; k++) {
+              if (board[j][k] == '') {
+                board[j][k] = player[1];
+                return 1
+              }
             }
+          }
+        } else {
+          if(board[j][m] == 'O' && board[j][n] == 'O'){
+            return 2
           }
         }
         // check vertical
@@ -99,27 +119,45 @@ function pattern_check(xo) {
         if (p < 0) {
           p = p + 3;
         }
-        if (board[o][i] == xo || board[p][i] == xo) {
-          for (let k = 0; k < 3; k++) {
-            if (board[k][i] == '') {
-              board[k][i] = player[1];
-              return 1
+        if (xo=='O' || xo=='X'){
+          if (board[o][i] == check || board[p][i] == check) {
+            for (let k = 0; k < 3; k++) {
+              if (board[k][i] == '') {
+                board[k][i] = player[1];
+                return 1
+              }
             }
+          }
+        } else{
+          if(board[o][i] == 'O' && board[p][i] == 'O'){
+            return 2
           }
         }
         // check diagonal
-        if (board[o][m] == xo && board[p][n] == '') {
-          board[p][n] = player[1];
-          return 1
-        } else if (board[p][n] == xo && board[o][m] == '') {
-          board[o][m] = player[1];
-          return 1
-        } else if (board[p][m] == xo && board[o][n] == '') {
-          board[o][n] = player[1];
-          return 1
-        } else if (board[o][n] == xo && board[p][m] == '') {
-          board[p][m] = player[1];
-          return 1
+        if (xo=='O' || xo=='X'){
+          if (board[o][m] == xo && board[p][n] == '') {
+            board[p][n] = player[1];
+            return 1
+          } else if (board[p][n] == xo && board[o][m] == '') {
+            board[o][m] = player[1];
+            return 1
+          } else if (board[p][m] == xo && board[o][n] == '') {
+            board[o][n] = player[1];
+            return 1
+          } else if (board[o][n] == xo && board[p][m] == '') {
+            board[p][m] = player[1];
+            return 1
+          }
+        } else{
+          if (board[o][m] == 'O' && board[p][n] == 'O') {
+            return 2
+          } else if (board[p][n] == 'O' && board[o][m] == 'O') {
+            return 2
+          } else if (board[p][m] == 'O' && board[o][n] == 'O') {
+            return 2
+          } else if (board[o][n] == 'O' && board[p][m] == 'O') {
+            return 2
+          }
         }
       }
     }
@@ -127,8 +165,13 @@ function pattern_check(xo) {
   return 0
 }
 
-function win(){
-  let resultP = createP('Haha I won!!');
+function win(who){
+  let resultP
+  if(who==1){
+    resultP = createP('Haha I won!!');
+  } else{
+    resultP = createP('OH NO! you won... sad :(');
+  }
   resultP.style('font-size', '40pt');
   resultP.position(18, 490)
   fill(0, 102, 153, 71);
@@ -153,7 +196,7 @@ function draw() {
     }
   }
   // first move for computer
-  if (empty == 9) {
+  if (first_player == player[1] && empty==9) {
     i = floor(random(3));
     j = floor(random(3));
     board[i][j] = player[1];
